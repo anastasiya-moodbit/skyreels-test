@@ -341,7 +341,7 @@ class WanAttentionBlock(nn.Module):
             return x
 
         x = cross_attn_ffn(x, context, e)
-        return x.to(torch.bfloat16)
+        return x.to(self.ffn[-1].weight.dtype)
 
 
 class Head(nn.Module):
