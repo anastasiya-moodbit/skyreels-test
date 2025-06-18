@@ -13,7 +13,7 @@ from torch.backends.cuda import sdp_kernel
 # from torch.nn.attention.flex_attention import create_block_mask # Unused
 # from torch.nn.attention.flex_attention import flex_attention # Unused
 
-from .attention import flash_attention
+from .attention import attention
 
 
 #flex_attention = torch.compile(flex_attention, dynamic=False, mode="max-autotune")
@@ -160,7 +160,7 @@ class WanSelfAttention(nn.Module):
         if not self._flag_ar_attention:
             q = rope_apply(q, grid_sizes, freqs)
             k = rope_apply(k, grid_sizes, freqs)
-            x = flash_attention(q=q, k=k, v=v, window_size=self.window_size)
+            x = attention(q=q, k=k, v=v, window_size=self.window_size)
         else:
             q = rope_apply(q, grid_sizes, freqs)
             k = rope_apply(k, grid_sizes, freqs)
