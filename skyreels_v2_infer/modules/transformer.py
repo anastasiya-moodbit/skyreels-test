@@ -233,9 +233,9 @@ class WanI2VCrossAttention(WanSelfAttention):
         v = self.v(context).view(b, -1, n, d)
         k_img = self.norm_k_img(self.k_img(context_img)).view(b, -1, n, d)
         v_img = self.v_img(context_img).view(b, -1, n, d)
-        img_x = flash_attention(q, k_img, v_img)
+        img_x = attention(q, k_img, v_img)
         # compute attention
-        x = flash_attention(q, k, v)
+        x = attention(q, k, v)
 
         # output
         x = x.flatten(2)
