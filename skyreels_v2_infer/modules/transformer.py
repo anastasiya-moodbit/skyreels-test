@@ -9,9 +9,9 @@ from diffusers.configuration_utils import register_to_config
 from diffusers.loaders import PeftAdapterMixin
 from diffusers.models.modeling_utils import ModelMixin
 from torch.backends.cuda import sdp_kernel
-from torch.nn.attention.flex_attention import BlockMask
-from torch.nn.attention.flex_attention import create_block_mask
-from torch.nn.attention.flex_attention import flex_attention
+# from torch.nn.attention.flex_attention import BlockMask # Unused
+# from torch.nn.attention.flex_attention import create_block_mask # Unused
+# from torch.nn.attention.flex_attention import flex_attention # Unused
 
 from .attention import flash_attention
 
@@ -19,7 +19,7 @@ from .attention import flash_attention
 flex_attention = torch.compile(flex_attention, dynamic=False, mode="max-autotune")
 
 DISABLE_COMPILE = False  # get os env
-
+FLEX_ATTENTION_COMPONENTS_AVAILABLE = False # Set to False as they are not used/imported
 __all__ = ["WanModel"]
 
 
@@ -540,13 +540,19 @@ class WanModel(ModelMixin, ConfigMixin, PeftAdapterMixin):
     @staticmethod
     def _prepare_blockwise_causal_attn_mask(
         device: torch.device | str, num_frames: int = 21, frame_seqlen: int = 1560, num_frame_per_block=1
-    ) -> BlockMask:
+    ): # Removed BlockMask type hint as it's not imported
         """
         we will divide the token sequence into the following format
         [1 latent frame] [1 latent frame] ... [1 latent frame]
         We use flexattention to construct the attention mask
         """
         total_length = num_frames * frame_seqlen
+
+        # This function is not called, but if it were and flex_attention was needed:
+        # if not FLEX_ATTENTION_COMPONENTS_AVAILABLE:
+        #     raise ImportError(
+        #         "flex_attention components are required for _prepare_blockwise_causal_attn_mask but not found."
+        #     )
 
         # we do right padding to get to a multiple of 128
         padded_length = math.ceil(total_length / 128) * 128 - total_length
