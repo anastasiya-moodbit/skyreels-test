@@ -164,9 +164,9 @@ class WanSelfAttention(nn.Module):
         else:
             q = rope_apply(q, grid_sizes, freqs)
             k = rope_apply(k, grid_sizes, freqs)
-            q = q.to(torch.bfloat16)
-            k = k.to(torch.bfloat16)
-            v = v.to(torch.bfloat16)
+            q = q.to(self.o.weight.dtype)
+            k = k.to(self.o.weight.dtype)
+            v = v.to(self.o.weight.dtype)
 
             with sdp_kernel(enable_flash=True, enable_math=False, enable_mem_efficient=False):
                 x = (
