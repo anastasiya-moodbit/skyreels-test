@@ -132,7 +132,7 @@ if __name__ == "__main__":
         args.model_id,
         dit_path=args.model_id,
         device=torch.device("cuda"),
-        weight_dtype=torch.bfloat16,
+        weight_dtype=torch.float16,
         use_usp=args.use_usp,
         offload=args.offload,
     )
@@ -192,7 +192,7 @@ if __name__ == "__main__":
         image = args.image.convert("RGB") if args.image else None
         end_image = args.end_image.convert("RGB") if args.end_image else None
         
-        with torch.cuda.amp.autocast(dtype=pipe.transformer.dtype), torch.no_grad():
+        with torch.amp.autocast(device_type="cuda", dtype=pipe.transformer.dtype), torch.no_grad():
             video_frames = pipe(
                 prompt=prompt_input,
                 negative_prompt=negative_prompt,

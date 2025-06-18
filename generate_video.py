@@ -112,13 +112,13 @@ if __name__ == "__main__":
         assert "T2V" in args.model_id, f"check model_id:{args.model_id}"
         print("init text2video pipeline")
         pipe = Text2VideoPipeline(
-            model_path=args.model_id, dit_path=args.model_id, use_usp=args.use_usp, offload=args.offload
+            model_path=args.model_id, dit_path=args.model_id, use_usp=args.use_usp, offload=args.offload, weight_dtype=torch.float16
         )
     else:
         assert "I2V" in args.model_id, f"check model_id:{args.model_id}"
         print("init img2video pipeline")
         pipe = Image2VideoPipeline(
-            model_path=args.model_id, dit_path=args.model_id, use_usp=args.use_usp, offload=args.offload
+            model_path=args.model_id, dit_path=args.model_id, use_usp=args.use_usp, offload=args.offload, weight_dtype=torch.float16
         )
         args.image = load_image(args.image)
         image_width, image_height = args.image.size
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     save_dir = os.path.join("result", args.outdir)
     os.makedirs(save_dir, exist_ok=True)
 
-    with torch.cuda.amp.autocast(dtype=pipe.transformer.dtype), torch.no_grad():
+    with torch.amp.autocast(device_type="cuda", dtype=pipe.transformer.dtype), torch.no_grad():
         print(f"infer kwargs:{kwargs}")
         video_frames = pipe(**kwargs)[0]
 
