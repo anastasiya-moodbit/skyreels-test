@@ -16,7 +16,7 @@ from torch.backends.cuda import sdp_kernel
 from .attention import flash_attention
 
 
-flex_attention = torch.compile(flex_attention, dynamic=False, mode="max-autotune")
+#flex_attention = torch.compile(flex_attention, dynamic=False, mode="max-autotune")
 
 DISABLE_COMPILE = False  # get os env
 FLEX_ATTENTION_COMPONENTS_AVAILABLE = False # Set to False as they are not used/imported
