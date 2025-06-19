@@ -25,13 +25,19 @@ class CausalConv3d(nn.Conv3d):
         self.padding = (0, 0, 0)
 
     def forward(self, x, cache_x=None):
+        target_dtype = self.weight.dtype # Should be float32 for VAE layers
+        x = x.to(target_dtype)
+
         padding = list(self._padding)
         if cache_x is not None and self._padding[4] > 0:
-            cache_x = cache_x.to(x.device)
+            # Ensure cache_x is also the target_dtype and on the correct device
+            cache_x = cache_x.to(device=x.device, dtype=target_dtype)
             x = torch.cat([cache_x, x], dim=2)
             padding[4] -= cache_x.shape[2]
+        
+        # F.pad should handle float32 input correctly
         x = F.pad(x, padding)
-
+        # super().forward will now receive x as float32, matching its float32 weights
         return super().forward(x)
 
 
