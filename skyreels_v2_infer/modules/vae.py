@@ -41,8 +41,9 @@ class CausalConv3d(nn.Conv3d):
             x_combined = x.to(device=x.device, dtype=forced_dtype)
 
         with torch.amp.autocast(device_type=x.device.type, enabled=True, dtype=forced_dtype):
-            padded_x = F.pad(x_combined, padding)
-            output = super().forward(padded_x)
+            # Ensure padded_x is contiguous before the convolution
+            padded_x = F.pad(x_combined, padding).contiguous()
+            output = super().forward(padded_x) # This is the nn.Conv3d call
         return output.to(x.dtype) # Cast back to original input dtype if necessary
 
 class RMS_norm(nn.Module):
