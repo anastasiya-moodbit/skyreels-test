@@ -47,6 +47,11 @@ if __name__ == "__main__":
         type=str,
         default="A serene lake surrounded by towering mountains, with a few swans gracefully gliding across the water and sunlight dancing on the surface.",
     )
+    parser.add_argument(
+        "--negative_prompt",
+        type=str,
+        default="Bright tones, overexposed, static, blurred details, subtitles, style, works, paintings, images, static, overall gray, worst quality, low quality, JPEG compression residue, ugly, incomplete, extra fingers, poorly drawn hands, poorly drawn faces, deformed, disfigured, misshapen limbs, fused fingers, still picture, messy background, three legs, many people in the background, walking backwards",
+    )
     parser.add_argument("--prompt_enhancer", action="store_true")
     parser.add_argument("--teacache", action="store_true")
     parser.add_argument(
@@ -78,7 +83,7 @@ if __name__ == "__main__":
         raise ValueError(f"Invalid resolution: {args.resolution}")
 
     image = load_image(args.image).convert("RGB") if args.image else None
-    negative_prompt = "Bright tones, overexposed, static, blurred details, subtitles, style, works, paintings, images, static, overall gray, worst quality, low quality, JPEG compression residue, ugly, incomplete, extra fingers, poorly drawn hands, poorly drawn faces, deformed, disfigured, misshapen limbs, fused fingers, still picture, messy background, three legs, many people in the background, walking backwards"
+    negative_prompt_input = args.negative_prompt
     local_rank = 0
     if args.use_usp:
         assert not args.prompt_enhancer, "`--prompt_enhancer` is not allowed if using `--use_usp`. We recommend running the skyreels_v2_infer/pipelines/prompt_enhancer.py script first to generate enhanced prompt before enabling the `--use_usp` parameter."
@@ -134,7 +139,7 @@ if __name__ == "__main__":
 
     kwargs = {
         "prompt": prompt_input,
-        "negative_prompt": negative_prompt,
+        "negative_prompt": negative_prompt_input,
         "num_frames": args.num_frames,
         "num_inference_steps": args.inference_steps,
         "guidance_scale": args.guidance_scale,
