@@ -25,21 +25,25 @@ class CausalConv3d(nn.Conv3d):
         self.padding = (0, 0, 0)
 
     def forward(self, x, cache_x=None):
-        target_dtype = self.weight.dtype # Should be float32 for VAE layers
-        x = x.to(target_dtype)
+        # The VAE layers are initialized with float32 weights.
+        # We want to ensure operations within this CausalConv3d use float32
+        # to match the weights, regardless of the outer autocast context.
+        forced_dtype = torch.float32
 
         padding = list(self._padding)
         if cache_x is not None and self._padding[4] > 0:
-            # Ensure cache_x is also the target_dtype and on the correct device
-            cache_x = cache_x.to(device=x.device, dtype=target_dtype)
-            x = torch.cat([cache_x, x], dim=2)
+            # Ensure cache_x is also the forced_dtype and on the correct device
+            cache_x_casted = cache_x.to(device=x.device, dtype=forced_dtype)
+            x_casted = x.to(device=x.device, dtype=forced_dtype)
+            x_combined = torch.cat([cache_x_casted, x_casted], dim=2)
             padding[4] -= cache_x.shape[2]
-        
-        # F.pad should handle float32 input correctly
-        x = F.pad(x, padding)
-        # super().forward will now receive x as float32, matching its float32 weights
-        return super().forward(x)
+        else:
+            x_combined = x.to(device=x.device, dtype=forced_dtype)
 
+        with torch.amp.autocast(device_type=x.device.type, enabled=True, dtype=forced_dtype):
+            padded_x = F.pad(x_combined, padding)
+            output = super().forward(padded_x)
+        return output.to(x.dtype) # Cast back to original input dtype if necessary
 
 class RMS_norm(nn.Module):
     def __init__(self, dim, channel_first=True, images=True, bias=False):
