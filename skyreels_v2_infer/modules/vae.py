@@ -57,7 +57,20 @@ class RMS_norm(nn.Module):
         self.bias = nn.Parameter(torch.zeros(shape)) if bias else 0.0
 
     def forward(self, x):
-        return F.normalize(x, dim=(1 if self.channel_first else -1)) * self.scale * self.gamma + self.bias
+        original_dtype = x.dtype
+        # Perform normalization in float32 for numerical stability
+        x_float32 = x.to(torch.float32) # Explicitly cast input to float32
+        
+        norm_dim = 1 if self.channel_first else -1
+        
+        # Manual normalization to control intermediate dtypes and add epsilon
+        variance = x_float32.pow(2).mean(dim=norm_dim, keepdim=True)
+        x_normalized_float32 = x_float32 * torch.rsqrt(variance + 1e-6) # Using a small epsilon like LayerNorm
+        
+        # Apply scale and bias (gamma and bias are float32)
+        output_float32 = x_normalized_float32 * self.scale * self.gamma + self.bias
+        
+        return output_float32.to(original_dtype)
 
 
 class Upsample(nn.Upsample):
