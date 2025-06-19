@@ -26,6 +26,10 @@ MODEL_ID_CONFIG = {
     ],
 }
 
+# Attempt to mitigate cuDNN errors
+torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = True
+
 
 if __name__ == "__main__":
 
